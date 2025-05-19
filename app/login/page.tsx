@@ -5,7 +5,7 @@ import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Microscope } from "lucide-react";
+import { Eye, EyeOff, Microscope } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +13,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -32,6 +31,7 @@ const formSchema = z.object({
 export default function LoginPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -48,7 +48,7 @@ export default function LoginPage() {
       setIsLoading(false);
       toast({
         title: "Login successful",
-        description: "Welcome back to MedAssist AI",
+        description: "Welcome back to Dr House",
       });
       // In a real app, you would redirect to the dashboard here
     }, 1500);
@@ -60,21 +60,20 @@ export default function LoginPage() {
       subtitle="Enter your credentials to access your account"
       imageUrl="https://images.pexels.com/photos/8460157/pexels-photo-8460157.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
     >
-      <div className="flex items-center space-x-2 mb-6">
-        <Microscope className="h-6 w-6 text-primary" />
-        <span className="font-bold text-xl">MedAssist AI</span>
-      </div>
-
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 w-full max-w-md mx-auto">
           <FormField
             control={form.control}
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="doctor@hospital.org" autoComplete="email" {...field} />
+                  <Input 
+                    className="h-12 px-4" 
+                    placeholder="Email Address" 
+                    autoComplete="email" 
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -85,10 +84,24 @@ export default function LoginPage() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <Input type="password" autoComplete="current-password" {...field} />
-                </FormControl>
+                <div className="relative">
+                  <FormControl>
+                    <Input 
+                      className="h-12 px-4 pr-10" 
+                      type={showPassword ? "text" : "password"} 
+                      placeholder="Password" 
+                      autoComplete="current-password" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <button 
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
                 <FormMessage />
               </FormItem>
             )}
@@ -101,7 +114,7 @@ export default function LoginPage() {
               Forgot password?
             </Link>
           </div>
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isLoading}>
             {isLoading ? "Logging in..." : "Log in"}
           </Button>
         </form>
