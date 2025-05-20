@@ -7,6 +7,8 @@ export const setAuthData = (token, userData) => {
   
   // Also set in localStorage for client-side access
   if (typeof window !== 'undefined') {
+    
+  
     localStorage.setItem('drhouse_auth_token', token);
     localStorage.setItem('drhouse_user', JSON.stringify(userData));
   }

@@ -5,6 +5,77 @@ import { ProtectedRoute } from '@/components/auth/protected-route';
 import { getUserData } from '@/utils/auth';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
+import jwtDecode from 'jwt-decode';
+import { Dialog } from '@headlessui/react'; 
+
+function ProfileDropdown({ user }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      <Button variant="outline" onClick={() => setIsOpen(true)}>
+        Profile
+      </Button>
+
+      {isOpen && (
+        <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="fixed z-50 inset-0 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4">
+            <Dialog.Panel className="bg-white p-8 rounded-xl shadow-xl w-full max-w-lg">
+              <Dialog.Title className="text-3xl font-bold mb-6">Profile</Dialog.Title>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-600">Title</label>
+                    <input
+                      className="w-full border rounded-lg p-2"
+                      value={user.title ?? ''}
+                      readOnly
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600">Name</label>
+                    <input
+                      className="w-full border rounded-lg p-2"
+                      value={`${user.firstName} ${user.lastName}`}
+                      readOnly
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm text-gray-600">Communication Email ID</label>
+                  <input
+                    className="w-full border rounded-lg p-2"
+                    value={user.email}
+                    readOnly
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm text-gray-600">Organization</label>
+                  <input
+                    className="w-full border rounded-lg p-2"
+                    value={user.organization ?? ''}
+                    readOnly
+                  />
+                </div>
+
+                <div className="flex justify-end">
+                  <Button onClick={() => setIsOpen(false)} className="bg-violet-600 text-white">
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </Dialog.Panel>
+          </div>
+        </Dialog>
+      )}
+    </>
+  );
+}
+
+
 
 export default function DashboardPage() {
   const [userData, setUserData] = useState(null);
@@ -17,6 +88,23 @@ export default function DashboardPage() {
       setUserData(user);
     }
   }, []);
+  
+  
+  useEffect(() => {
+    const token = localStorage.getItem('drhouse_auth_token');
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setUserData(decoded);
+      } catch (e) {
+        console.error('Invalid token', e);
+      }
+    }
+  }, []);
+  const handleNewPatientClick = () => {
+    const token = localStorage.getItem('drhouse_auth_token');
+    router.push(`/patient?token=${encodeURIComponent(token ?? '')}`);
+  };
 
   return (
     <ProtectedRoute>
@@ -33,12 +121,10 @@ export default function DashboardPage() {
               )}
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="outline" onClick={() => router.push('/profile')}>
-                Profile
-              </Button>
-              <Button variant="outline" onClick={() => router.push('/settings')}>
-                Settings
-              </Button>
+      
+              {userData && <ProfileDropdown user={userData} />}
+
+
             </div>
           </header>
 
@@ -101,7 +187,7 @@ export default function DashboardPage() {
             <div className="bg-white p-6 rounded-xl shadow-md">
               <h2 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h2>
               <div className="grid grid-cols-2 gap-3">
-                <Button className="w-full">New Patient</Button>
+                <Button className="w-full" onClick = {() => handleNewPatientClick()}>New Patient</Button>
                 <Button className="w-full">Schedule</Button>
                 <Button className="w-full">Prescriptions</Button>
                 <Button className="w-full">Reports</Button>
