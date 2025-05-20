@@ -1,3 +1,5 @@
+import { jwtDecode } from "jwt-decode";
+
 // Helper functions for authentication
 
 // Set authentication token and user data in both cookies and localStorage
@@ -40,7 +42,15 @@ export const getUserData = () => {
   if (typeof window === 'undefined') {
     return null;
   }
-  
-  const userData = localStorage.getItem('drhouse_user');
-  return userData ? JSON.parse(userData) : null;
+  const token = localStorage.getItem('drhouse_auth_token');
+  if (token) {
+    try {
+      const decoded = jwtDecode(token);
+      console.log(decoded,'hehehe')
+      return decoded
+    } catch (e) {
+      return ''
+    }
+  }
+
 };

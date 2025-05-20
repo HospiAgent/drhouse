@@ -5,8 +5,19 @@ import { ProtectedRoute } from '@/components/auth/protected-route';
 import { getUserData } from '@/utils/auth';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import {jwtDecode} from 'jwt-decode';
-import { Dialog } from '@headlessui/react'; 
+import { jwtDecode } from 'jwt-decode';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle 
+} from '@/components/ui/dialog';
+import { 
+  Brain, 
+  BarChart3, 
+  SearchCode, 
+  ClipboardSignature
+} from 'lucide-react';
 
 function ProfileDropdown({ user }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,65 +28,61 @@ function ProfileDropdown({ user }) {
         Profile
       </Button>
 
-      {isOpen && (
-        <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="fixed z-50 inset-0 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen px-4">
-            <Dialog.Panel className="bg-white p-8 rounded-xl shadow-xl w-full max-w-lg">
-              <Dialog.Title className="text-3xl font-bold mb-6">Profile</Dialog.Title>
-
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm text-gray-600">Title</label>
-                    <input
-                      className="w-full border rounded-lg p-2"
-                      value={user.title ?? ''}
-                      readOnly
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-600">Name</label>
-                    <input
-                      className="w-full border rounded-lg p-2"
-                      value={`${user.firstName} ${user.lastName}`}
-                      readOnly
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600">Communication Email ID</label>
-                  <input
-                    className="w-full border rounded-lg p-2"
-                    value={user.email}
-                    readOnly
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600">Organization</label>
-                  <input
-                    className="w-full border rounded-lg p-2"
-                    value={user.organization ?? ''}
-                    readOnly
-                  />
-                </div>
-
-                <div className="flex justify-end">
-                  <Button onClick={() => setIsOpen(false)} className="bg-violet-600 text-white">
-                    Close
-                  </Button>
-                </div>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-3xl font-bold">Profile</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 pt-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm text-gray-600">Title</label>
+                <input
+                  className="w-full border rounded-lg p-2"
+                  value='Dr.'
+                  readOnly
+                />
               </div>
-            </Dialog.Panel>
+              <div>
+                <label className="block text-sm text-gray-600">Name</label>
+                <input
+                  className="w-full border rounded-lg p-2"
+                  value={`${user.name}`}
+                  readOnly
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-600">Email ID</label>
+              <input
+                className="w-full border rounded-lg p-2"
+                value={user.email}
+                readOnly
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-600">Organization</label>
+              <input
+                className="w-full border rounded-lg p-2"
+                value={user.organization ?? ''}
+                readOnly
+              />
+            </div>
+
+            <div className="flex justify-end">
+              <Button onClick={() => setIsOpen(false)} className="bg-violet-600 text-white">
+                Close
+              </Button>
+            </div>
           </div>
-        </Dialog>
-      )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
-
-
 
 export default function DashboardPage() {
   const [userData, setUserData] = useState(null);
@@ -121,118 +128,106 @@ export default function DashboardPage() {
               )}
             </div>
             <div className="flex items-center space-x-4">
-      
               {userData && <ProfileDropdown user={userData} />}
-
-
             </div>
           </header>
 
-          {/* Main Content */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {/* Quick Stats */}
-            <div className="bg-white p-6 rounded-xl shadow-md">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Today's Overview</h2>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Patients</span>
-                  <span className="font-medium">12</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Appointments</span>
-                  <span className="font-medium">8</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Pending Reports</span>
-                  <span className="font-medium">3</span>
-                </div>
-              </div>
+          <div className="relative mb-16 flex justify-center items-center">
+            {/* Background Icon */}
+            <div className="absolute inset-0 flex justify-center items-center pointer-events-none opacity-10">
+              <ClipboardSignature size={240} className="text-violet-200" />
             </div>
-
-            {/* Recent Patients */}
-            <div className="bg-white p-6 rounded-xl shadow-md">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Patients</h2>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
-                    JD
-                  </div>
-                  <div>
-                    <p className="font-medium">John Doe</p>
-                    <p className="text-sm text-gray-500">Checkup at 10:00 AM</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-medium">
-                    AS
-                  </div>
-                  <div>
-                    <p className="font-medium">Alice Smith</p>
-                    <p className="text-sm text-gray-500">Follow-up at 11:30 AM</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-medium">
-                    RJ
-                  </div>
-                  <div>
-                    <p className="font-medium">Robert Johnson</p>
-                    <p className="text-sm text-gray-500">Consultation at 2:15 PM</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="bg-white p-6 rounded-xl shadow-md">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h2>
-              <div className="grid grid-cols-2 gap-3">
-                <Button className="w-full" onClick = {() => handleNewPatientClick()}>New Patient</Button>
-                <Button className="w-full">Schedule</Button>
-                <Button className="w-full">Prescriptions</Button>
-                <Button className="w-full">Reports</Button>
-              </div>
+          
+            {/* Foreground Card */}
+            <div className="relative bg-white p-10 rounded-3xl shadow-2xl hover:shadow-3xl transition-shadow text-center max-w-3xl w-full z-10 transform hover:-translate-y-1 duration-300">
+              <h2 className="text-4xl font-extrabold text-gray-900 mb-4">Manage Your Patients</h2>
+              <p className="text-gray-700 mb-6 text-lg">
+                View, monitor, and manage patient information, appointments, and medical records seamlessly.
+              </p>
+              <Button className="bg-violet-700 hover:bg-violet-800 text-white px-6 py-3 text-lg transition-colors duration-200" onClick={handleNewPatientClick}>
+                Go to Patients
+              </Button>
             </div>
           </div>
 
-          {/* Recent Activity */}
-          <div className="bg-white p-6 rounded-xl shadow-md">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h2>
-            <div className="space-y-4">
-              <div className="flex items-start space-x-3">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-medium">Appointment completed</p>
-                  <p className="text-sm text-gray-500">You completed an appointment with John Doe</p>
-                  <p className="text-xs text-gray-400 mt-1">Today, 10:30 AM</p>
+
+          {/* Future Features Section */}
+          <div className="mb-16">
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-bold text-gray-800 mb-3">Premium Features Coming Soon</h2>
+              <p className="text-gray-600 max-w-3xl mx-auto">Unlock the full potential of your practice with our upcoming premium features designed to streamline workflows and enhance patient care.</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* AI Medical Scribe Card */}
+              <div className="bg-white/30 backdrop-blur-md border border-white/40 p-8 rounded-3xl shadow-lg min-h-[360px] transition-all hover:shadow-xl hover:bg-white/40 hover:translate-y-[-4px] duration-300">
+                <p className="text-purple-600 font-medium mb-2">Accelerate Documentation</p>
+                <h3 className="font-bold text-2xl mb-5">Multilingual AI Medical Scribe</h3>
+                
+                <div className="flex flex-col md:flex-row mb-6 h-full">
+                  <div className="bg-white/80 rounded-xl shadow-md mb-4 md:mb-0 md:mr-5 w-full md:w-36 h-36 flex-shrink-0 flex items-center justify-center text-purple-600">
+                    <ClipboardSignature size={64} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-gray-700 mb-6">Accuracy that converts even the most complex multi-party medical conversations into comprehensive clinical notes in real-time. Save hours of documentation time while improving note quality.</p>
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                      </svg>
+                      Premium Feature
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-medium">Prescription issued</p>
-                  <p className="text-sm text-gray-500">You issued a prescription for Alice Smith</p>
-                  <p className="text-xs text-gray-400 mt-1">Today, 9:15 AM</p>
+              
+              {/* Patient Portraits Card */}
+              <div className="bg-white/30 backdrop-blur-md border border-white/40 p-8 rounded-3xl shadow-lg min-h-[360px] transition-all hover:shadow-xl hover:bg-white/40 hover:translate-y-[-4px] duration-300">
+                <p className="text-green-600 font-medium mb-2">Increase Captured Value</p>
+                <h3 className="font-bold text-2xl mb-5">Value-Based Patient Portraits</h3>
+                
+                <div className="flex flex-col md:flex-row mb-6 h-full">
+                  <div className="bg-white/80 rounded-xl shadow-md mb-4 md:mb-0 md:mr-5 w-full md:w-36 h-36 flex-shrink-0 flex items-center justify-center text-green-600">
+                    <BarChart3 size={64} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-gray-700 mb-6">Before appointments, quickly generates comprehensive patient portraits, identifying quality and risk gaps needing attention. It helps prioritize care delivery and maximize risk adjustment acceptance.</p>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
+              
+              {/* Advanced Analytics Card */}
+              <div className="bg-white/30 backdrop-blur-md border border-white/40 p-8 rounded-3xl shadow-lg min-h-[360px] transition-all hover:shadow-xl hover:bg-white/40 hover:translate-y-[-4px] duration-300">
+                <p className="text-amber-600 font-medium mb-2">Data-Driven Decisions</p>
+                <h3 className="font-bold text-2xl mb-5">Advanced Medical Analytics</h3>
+                
+                <div className="flex flex-col md:flex-row mb-6 h-full">
+                  <div className="bg-white/80 rounded-xl shadow-md mb-4 md:mb-0 md:mr-5 w-full md:w-36 h-36 flex-shrink-0 flex items-center justify-center text-amber-600">
+                    <Brain size={64} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-gray-700 mb-6">Comprehensive analytics and custom report generation that transform raw clinical data into actionable practice insights. Identify trends and improve patient outcomes with data-driven intelligence.</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-medium">Lab results received</p>
-                  <p className="text-sm text-gray-500">Lab results for Robert Johnson have been received</p>
-                  <p className="text-xs text-gray-400 mt-1">Yesterday, 4:45 PM</p>
+              </div>
+              
+              {/* AI Research Card */}
+              <div className="bg-white/30 backdrop-blur-md border border-white/40 p-8 rounded-3xl shadow-lg min-h-[360px] transition-all hover:shadow-xl hover:bg-white/40 hover:translate-y-[-4px] duration-300">
+                <p className="text-fuchsia-600 font-medium mb-2">Evidence-Based Care</p>
+                <h3 className="font-bold text-2xl mb-5">AI Medical Research Assistant</h3>
+                
+                <div className="flex flex-col md:flex-row mb-6 h-full">
+                  <div className="bg-white/80 rounded-xl shadow-md mb-4 md:mb-0 md:mr-5 w-full md:w-36 h-36 flex-shrink-0 flex items-center justify-center text-fuchsia-600">
+                    <SearchCode size={64} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-gray-700 mb-6">Cutting-edge AI analytics that automatically scans the latest medical research and provides personalized treatment recommendations based on patient-specific factors.</p>
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-fuchsia-100 text-fuchsia-800">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                      </svg>
+                      Premium Feature
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

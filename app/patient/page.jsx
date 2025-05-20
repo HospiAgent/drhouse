@@ -40,23 +40,7 @@ export default function HealthMonitor() {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   // Sample chat data
-  const [chats, setChats] = useState([
-    {
-      id: 'joseph-berrington',
-      name: 'Joseph Berrington',
-      time: '08:23',
-      message: 'Good afternoon, Doctor. I have a sore throat and a strange headache. What could it be?',
-      unread: 2,
-      messages: [],
-      email: 'josephb@example.com',
-      phone: '+1 555-123-4567',
-      dateOfBirth: '04/15/1985',
-      condition: 'Seasonal allergies',
-      gender: 'Male',
-      soapResponse: null,
-      transcription: null
-    }
-  ]);
+  const [chats, setChats] = useState([  ]);
 
   const [doctorId, setDoctorId] = useState("");
   const [doctorName, setDoctorName] = useState("");
@@ -533,7 +517,7 @@ export default function HealthMonitor() {
           }
         });
 
-        setPatientHistory(uniqueDatesData);
+        setPatientHistory(response?.data?.reverse());
       } else {
         setPatientHistory([]);
       }
@@ -656,7 +640,7 @@ export default function HealthMonitor() {
             Date of Birth *
           </label>
           <input
-            type="text"
+            type="date"
             id="dateOfBirth"
             name="dateOfBirth"
             ref={dobInputRef}
@@ -664,21 +648,19 @@ export default function HealthMonitor() {
             onChange={handlePatientInputChange}
             onFocus={() => setFocusedField('dateOfBirth')}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            placeholder="MM/DD/YYYY"
             required
           />
         </div>
 
+
         <div className="mb-6">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="condition">
-            Medical Condition
-          </label>
+         
           <input
-            type="text"
+            type="hidden"
             id="condition"
             name="condition"
             ref={conditionInputRef}
-            value={newPatient.condition}
+            value="empty"
             onChange={handlePatientInputChange}
             onFocus={() => setFocusedField('condition')}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -752,8 +734,11 @@ export default function HealthMonitor() {
               // Parse the SOAP analysis JSON
               let soapData = "";
               try {
-                const parsedSoap = JSON.parse(historyItem.soap_analysis);
-                soapData = parsedSoap.data;
+                console.log(JSON.stringify(historyItem))
+                // const parsedSoap = JSON.parse(historyItem.soap_analysis);
+                
+                soapData = historyItem.soap_analysis;
+
               } catch (e) {
                 console.error("Error parsing SOAP analysis:", e);
                 soapData = "Error parsing SOAP data";
@@ -875,7 +860,7 @@ export default function HealthMonitor() {
           return (
             <div className="flex flex-col md:flex-row h-screen bg-gray-100 overflow-hidden">
               {/* Left Sidebar - Hidden on mobile, shown when toggled or on desktop */}
-              
+
               {/* Main Content */}
               <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Header */}
@@ -1311,8 +1296,17 @@ export default function HealthMonitor() {
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            {currentChat?.dateOfBirth}
+                            <input
+                              type="date"
+                              value={currentChat?.dateOfBirth || ''}
+                              onChange={(e) => handleDateChange(e.target.value)}
+                              className="border-b border-gray-300 p-1 w-32 text-black"
+                              required
+                              pattern="\d{4}-\d{2}-\d{2}"
+                              title="Please enter the date in YYYY-MM-DD format"
+                            />
                           </div>
+
 
                           <div className="text-xs text-gray-500 mb-2">Gender</div>
                           <div className="flex items-center text-sm mb-4 text-black">
