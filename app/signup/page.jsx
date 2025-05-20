@@ -138,7 +138,7 @@ export default function SignupPage() {
       
       toast({
         title: "Account created",
-        description: "Welcome to Dr House. Let's set up your profile.",
+        description: "Welcome to Dr. House. Let's set up your profile.",
       });
       
       // Start the transition animation
@@ -181,7 +181,7 @@ export default function SignupPage() {
       <div style={{ opacity, transition: 'opacity 0.5s ease' }}>
       <AuthLayout 
       title="Create an account"
-      subtitle="Sign up to get started with Dr House"
+      subtitle="Sign up to get started with Dr. House"
       imageUrl="https://imgs.search.brave.com/6caUJero8Y-uD3L1Jk7Mqa-K1HO11BtQotU0-DGZvA0/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9lYXN5/LXBlYXN5LmFpL2Nk/bi1jZ2kvaW1hZ2Uv/cXVhbGl0eT04MCxm/b3JtYXQ9YXV0byx3/aWR0aD03MDAvaHR0/cHM6Ly9tZWRpYS5l/YXN5LXBlYXN5LmFp/LzY0MzEwMjVjLWVj/NmItNDAwNi1iOTVi/LTdlZjI3YzY3MWJi/Yi83MWFiY2M0Mi1h/ZjAwLTQ0MTYtYjc5/My1lMWE5MjQ3NTE2/ODUucG5n">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 w-full sm:max-w-md md:max-w-lg mx-auto border rounded-xl p-6 md:p-8 shadow-md bg-white/50 backdrop-blur-sm">

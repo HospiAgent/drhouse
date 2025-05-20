@@ -14,7 +14,7 @@ export function HomeHero() {
               Your AI Medical Assistant for Enhanced Patient Care
             </h1>
             <p className="max-w-[600px] text-muted-foreground md:text-xl">
-              MedAssist AI streamlines clinical workflows by transcribing conversations, generating clinical notes, and providing instant access to medical research—all in one secure platform.
+              Dr.House AI  streamlines clinical workflows by transcribing conversations, generating clinical notes, and providing instant access to medical research—all in one secure platform.
             </p>
             <div className="flex flex-col gap-2 min-[400px]:flex-row">
               <Link href="/signup">

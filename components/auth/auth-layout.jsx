@@ -30,12 +30,12 @@ export function AuthLayout({ children, title, subtitle, imageUrl }) {
           >
             <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
           </svg>
-          Dr House
+          Dr. House
         </div>
         <div className="relative z-10 mt-auto">
           <blockquote className="space-y-2">
             <p className="text-lg">
-              "Dr House has completely transformed how I document patient encounters. I save at least an hour every day on paperwork, giving me more time with patients."
+              "Dr. House has completely transformed how I document patient encounters. I save at least an hour every day on paperwork, giving me more time with patients."
             </p>
             <footer className="text-sm">Dr. Bhavesh Khan, Cardiologist</footer>
           </blockquote>

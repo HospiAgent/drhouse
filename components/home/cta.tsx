@@ -11,7 +11,7 @@ export function HomeCTA() {
               Ready to Transform Your Practice?
             </h2>
             <p className="max-w-[700px] text-primary-foreground/80 md:text-xl">
-              Join thousands of healthcare professionals who are saving time and improving patient outcomes with MedAssist AI.
+              Join thousands of healthcare professionals who are saving time and improving patient outcomes with Dr.House AI.
             </p>
           </div>
           <div className="flex flex-col gap-2 min-[400px]:flex-row">

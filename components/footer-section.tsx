@@ -9,7 +9,7 @@ export function FooterSection() {
           <div className="flex flex-col space-y-4">
             <Link href="/" className="flex items-center space-x-2">
               <Microscope className="h-6 w-6 text-primary" />
-              <span className="font-bold text-xl">MedAssist AI</span>
+              <span className="font-bold text-xl">Dr.House AI</span>
             </Link>
             <p className="text-sm text-muted-foreground">
               Secure AI-powered assistant platform for healthcare professionals.
@@ -68,17 +68,13 @@ export function FooterSection() {
                   Terms of Service
                 </Link>
               </li>
-              <li>
-                <Link href="/hipaa" className="text-muted-foreground hover:text-foreground">
-                  HIPAA Compliance
-                </Link>
-              </li>
+            
             </ul>
           </div>
         </div>
         <div className="mt-8 border-t pt-4">
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} MedAssist AI. All rights reserved.
+            © {new Date().getFullYear()} Dr.House AI. All rights reserved.
           </p>
         </div>
       </div>

@@ -40,11 +40,7 @@ export function HomeFeatures() {
             title="Instant Research"
             description="Access medical databases and recent studies without leaving the platform, ensuring evidence-based decisions."
           />
-          <FeatureCard
-            icon={<Lock className="h-10 w-10 text-primary" />}
-            title="HIPAA Compliant"
-            description="Enterprise-grade security with end-to-end encryption and strict access controls that meet healthcare standards."
-          />
+        
           <FeatureCard
             icon={<LineChart className="h-10 w-10 text-primary" />}
             title="Analytics Dashboard"

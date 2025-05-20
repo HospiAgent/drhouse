@@ -7,7 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
-  title: 'Dr House | Healthcare Professional Assistant',
+  title: 'Dr. House | Healthcare Professional Assistant',
   description: 'AI-powered assistant platform for healthcare professionals',
 };
 
