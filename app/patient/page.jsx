@@ -7,7 +7,7 @@ import { jwtDecode } from "jwt-decode";
 import { useSearchParams } from 'next/navigation';
 
 // Create a wrapper component that safely uses searchParams
-function SearchParamsWrapper({ children  }) {
+function SearchParamsWrapper({ children }) {
   const searchParams = useSearchParams();
   return children(searchParams);
 }
@@ -313,23 +313,40 @@ export default function HealthMonitor() {
 
   const closeAddPatientModal = () => {
     setShowAddPatientModal(false);
-    setNewPatient({
+    setFormData({
       name: '',
       email: '',
       phone: '',
-      condition: '',
       dateOfBirth: '',
-      gender: 'Male'
+      gender: '',
+      condition: ''
     });
   };
 
+  // New unified input handler for form fields
   const handlePatientInputChange = (e) => {
     const { name, value } = e.target;
+
+    // Store the name of the current field being edited
+    setFocusedField(name);
+
+    // Update the patient state
     setNewPatient(prev => ({
       ...prev,
       [name]: value
     }));
   };
+
+  // Refs for input fields to maintain focus
+  const nameInputRef = useRef(null);
+  const emailInputRef = useRef(null);
+  const phoneInputRef = useRef(null);
+  const dobInputRef = useRef(null);
+  const conditionInputRef = useRef(null);
+  const genderInputRef = useRef(null);
+
+  // Keep track of which input field is currently focused
+  const [focusedField, setFocusedField] = useState(null);
 
   // For outside click to close modal
   useEffect(() => {
@@ -373,21 +390,32 @@ export default function HealthMonitor() {
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [condition, setCondition] = useState("");
 
+  // Replace individual form state variables with a single formData object
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    dateOfBirth: '',
+    gender: '',
+    condition: ''
+  });
+
+  // Simplified Add Patient function
   const addPatient = async () => {
-    if (!name || !email || !phone || !dateOfBirth) {
+    if (!newPatient.name || !newPatient.email || !newPatient.phone || !newPatient.dateOfBirth) {
       alert("Please fill in all required fields.");
       return;
     }
 
     try {
       let data = JSON.stringify({
-        "patient_name": name,
-        "patient_email": email,
-        "patient_phone": phone,
-        "patient_birth_day": dateOfBirth,
-        "patient_gender": gender,
+        "patient_name": newPatient.name,
+        "patient_email": newPatient.email,
+        "patient_phone": newPatient.phone,
+        "patient_birth_day": newPatient.dateOfBirth,
+        "patient_gender": newPatient.gender,
         "patient_address": "123 Elm Street, Springfield, IL, 62701",
-        "patient_medical_history": condition,
+        "patient_medical_history": newPatient.condition,
         "patient_status": "active",
         "patient_last_visit": new Date().toISOString(),
       });
@@ -413,6 +441,33 @@ export default function HealthMonitor() {
     }
   };
 
+  useEffect(() => {
+    if (focusedField && showAddPatientModal) {
+      switch (focusedField) {
+        case 'name':
+          nameInputRef.current?.focus();
+          break;
+        case 'email':
+          emailInputRef.current?.focus();
+          break;
+        case 'phone':
+          phoneInputRef.current?.focus();
+          break;
+        case 'dateOfBirth':
+          dobInputRef.current?.focus();
+          break;
+        case 'condition':
+          conditionInputRef.current?.focus();
+          break;
+        case 'gender':
+          genderInputRef.current?.focus();
+          break;
+        default:
+          break;
+      }
+    }
+  }, [newPatient, focusedField, showAddPatientModal]);
+
   const addSoap = async (patient_id) => {
     try {
       // Get the current SOAP response and transcription
@@ -427,8 +482,8 @@ export default function HealthMonitor() {
 
       let data = JSON.stringify({
         "patient_id": patient_id,
-        "soap_analysis": soapToSave,
-        "transcription": transcriptionToSave
+        "soap_analysis": note,
+        "transcription": text
       });
 
       let config = {
@@ -509,7 +564,6 @@ export default function HealthMonitor() {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
-  // Add Patient Modal Component
   const AddPatientModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div ref={modalRef} className="bg-white rounded-lg shadow-xl p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
@@ -529,12 +583,17 @@ export default function HealthMonitor() {
           <select
             id="gender"
             name="gender"
-            onChange={(e) => setGender(e.target.value)}
+            ref={genderInputRef}
+            value={newPatient.gender}
+            onChange={handlePatientInputChange}
+            onFocus={() => setFocusedField('gender')}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             required
           >
+            <option value="" disabled>Select Gender</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
+            <option value="Non Binary">Non Binary</option>
           </select>
         </div>
 
@@ -546,8 +605,10 @@ export default function HealthMonitor() {
             type="text"
             id="name"
             name="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            ref={nameInputRef}
+            value={newPatient.name}
+            onChange={handlePatientInputChange}
+            onFocus={() => setFocusedField('name')}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             placeholder="John Doe"
             required
@@ -562,8 +623,10 @@ export default function HealthMonitor() {
             type="email"
             id="email"
             name="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            ref={emailInputRef}
+            value={newPatient.email}
+            onChange={handlePatientInputChange}
+            onFocus={() => setFocusedField('email')}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             placeholder="john@example.com"
             required
@@ -578,8 +641,10 @@ export default function HealthMonitor() {
             type="tel"
             id="phone"
             name="phone"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            ref={phoneInputRef}
+            value={newPatient.phone}
+            onChange={handlePatientInputChange}
+            onFocus={() => setFocusedField('phone')}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             placeholder="+1 (555) 123-4567"
             required
@@ -594,8 +659,10 @@ export default function HealthMonitor() {
             type="text"
             id="dateOfBirth"
             name="dateOfBirth"
-            value={dateOfBirth}
-            onChange={(e) => setDateOfBirth(e.target.value)}
+            ref={dobInputRef}
+            value={newPatient.dateOfBirth}
+            onChange={handlePatientInputChange}
+            onFocus={() => setFocusedField('dateOfBirth')}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             placeholder="MM/DD/YYYY"
             required
@@ -610,8 +677,10 @@ export default function HealthMonitor() {
             type="text"
             id="condition"
             name="condition"
-            value={condition}
-            onChange={(e) => setCondition(e.target.value)}
+            ref={conditionInputRef}
+            value={newPatient.condition}
+            onChange={handlePatientInputChange}
+            onFocus={() => setFocusedField('condition')}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             placeholder="e.g., Diabetes, Hypertension"
           />
@@ -639,6 +708,15 @@ export default function HealthMonitor() {
       </div>
     </div>
   );
+
+  const [note, setNote] = useState(
+    currentChat?.soapResponse?.data || soapResponse?.data || ""
+  );
+
+  // If currentChat or soapResponse changes, update note accordingly
+  useEffect(() => {
+    setNote(currentChat?.soapResponse?.data || soapResponse?.data || "");
+  }, [currentChat, soapResponse]);
 
   // Patient History Modal Component
   const PatientHistoryModal = () => (
@@ -717,6 +795,14 @@ export default function HealthMonitor() {
     </div>
   );
 
+  const [text, setText] = useState(transcription || "");
+
+  useEffect(() => {
+    setText(transcription || "");
+  }, [transcription]);
+
+
+
   // Mobile Menu Bar Component
   const MobileMenuBar = () => (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t z-20 md:hidden">
@@ -789,78 +875,7 @@ export default function HealthMonitor() {
           return (
             <div className="flex flex-col md:flex-row h-screen bg-gray-100 overflow-hidden">
               {/* Left Sidebar - Hidden on mobile, shown when toggled or on desktop */}
-              <div className={`${showSidebar ? 'fixed inset-0 z-30 md:relative md:z-auto' : 'hidden md:block'} md:w-48 bg-blue-950 text-white flex flex-col h-screen`}>
-                {/* Mobile close button */}
-                <div className="md:hidden flex justify-end p-2">
-                  <button onClick={() => setShowSidebar(false)} className="text-white p-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-
-                <div className="p-4 flex items-center">
-                  <div className="mr-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <div className="font-bold">Health Monitor</div>
-                    <div className="text-xs text-blue-300">Enterprise</div>
-                  </div>
-                </div>
-
-                {/* User Profile */}
-                <div className="flex flex-col items-center pb-4 border-b border-blue-900">
-                  <div className="relative">
-                    <img src="https://plus.unsplash.com/premium_photo-1658506671316-0b293df7c72b?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8ZG9jdG9yfGVufDB8fDB8fHww" alt="User Avatar" className="rounded-full w-16 h-16" />
-                  </div>
-                  <div className="mt-2 text-center">
-                    <div className="font-medium">{doctorName}</div>
-                    <div className="text-xs text-blue-300">{doctorSpeciality}</div>
-                  </div>
-                  <div className="mt-2 w-full px-4">
-                    <button className="w-full bg-blue-600 py-1 px-3 rounded-md text-sm flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                      </svg>
-                      940-837-5470
-                    </button>
-                  </div>
-
-                </div>
-
-                {/* Insurance Info */}
-                <div className="px-4 py-2 text-xs">
-                  <div className="text-blue-300 font-medium mb-1">Details</div>
-                  <div className="mb-1 font-medium">Doctor id</div>
-                  <div className="mb-1 text-gray-300">{doctorId}</div>
-                </div>
-
-                {/* Address Info */}
-                <div className="px-4 py-2 text-xs border-t border-blue-900">
-                  <div className="text-blue-300 font-medium mb-1">ADDRESS</div>
-                  <div className="mb-1 font-medium">{doctorAddress}</div>
-                </div>
-
-
-
-                {/* Navigation Menu */}
-                <div className="flex-1 mt-6">
-                  <ul>
-
-                    <li className="flex items-center px-4 py-3 hover:bg-blue-900 bg-blue-800">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                      </svg>
-                      Communication center
-                    </li>
-
-                  </ul>
-                </div>
-              </div>
-
+              
               {/* Main Content */}
               <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Header */}
@@ -875,22 +890,11 @@ export default function HealthMonitor() {
                   </div>
 
                   <div className="hidden md:block relative">
-                    <input
-                      type="text"
-                      placeholder="Search"
-                      className="bg-gray-100 rounded-full py-2 pl-10 pr-4 text-sm w-64"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                    <div className="absolute left-3 top-2.5">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                    </div>
+
                   </div>
 
                   <div className="flex items-center">
-                  
+
                     <div className="hidden md:flex items-center">
                       <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white mr-2">
                         DC
@@ -1061,8 +1065,13 @@ export default function HealthMonitor() {
                           )}
 
                           <div className="text-xs text-gray-500 mt-6 text-center">
-                            Status: {status || "Ready to record"}
+                            Status: {status === 'idle' ? (
+                              <span className="text-gray-400">Not recording</span>
+                            ) : (
+                              <span className="text-green-500">{status}</span>
+                            )}
                           </div>
+
                         </div>
                       )}
 
@@ -1090,7 +1099,7 @@ export default function HealthMonitor() {
                             </div>
                           </div>
 
-                          <div className="flex space-x-4 sm:space-x-6">
+                          <div className="flex space-x-4 sm:space-x-6 items-center">
                             <button
                               onClick={handlePauseAssessment}
                               className={`flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full ${assessmentState === 'recording'
@@ -1109,6 +1118,9 @@ export default function HealthMonitor() {
                                 </svg>
                               )}
                             </button>
+                            <span className="text-gray-700 text-sm">
+                              {assessmentState === 'recording' ? 'Pause' : 'Resume'}
+                            </span>
 
                             <button
                               onClick={handleEndAssessment}
@@ -1119,6 +1131,7 @@ export default function HealthMonitor() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
                               </svg>
                             </button>
+                            <span className="text-gray-700 text-sm">End</span>
                           </div>
 
                           <div className="text-xs text-gray-500 mt-8">
@@ -1126,6 +1139,7 @@ export default function HealthMonitor() {
                           </div>
                         </div>
                       )}
+
 
                       {assessmentState === 'summarizing' && (
                         <div className="flex flex-col items-center bg-white rounded-lg shadow-md p-4 sm:p-6 w-full max-w-lg">
@@ -1136,7 +1150,7 @@ export default function HealthMonitor() {
                             </svg>
                           </div>
                           <div className="text-lg font-medium text-gray-800 mb-2">
-                            Processing your assessment...
+                            Summarizing your assessment...
                           </div>
                           <div className="text-sm text-gray-600 text-center">
                             Converting audio to text and generating summary
@@ -1163,21 +1177,32 @@ export default function HealthMonitor() {
 
                           <div className="border rounded-lg mb-6 overflow-hidden">
                             <div className="bg-gray-50 px-4 py-3 border-b">
-                              <h3 className="font-medium text-lg text-gray-800">Patient: {currentChat?.name || "Patient"}</h3>
+                              <h3 className="font-medium text-lg text-gray-800">
+                                Patient: {currentChat?.name || "Patient"}
+                              </h3>
                             </div>
-                            <div className="p-4 mt-6 pt-6">
-                              <br></br><br></br><br></br><br></br><br></br><br></br><br></br><br></br><br></br><br></br><br></br>
-                              {/* Display the formatted SOAP note with increased top padding */}
-                              <div className="bg-gray-50 text-black p-4 sm:p-6 pt-8 rounded border text-sm whitespace-pre-wrap font-mono leading-relaxed mt-6 overflow-x-auto">
-                                {currentChat?.soapResponse?.data || soapResponse?.data || "No SOAP note available"}
-                              </div>
+                            <div className="p-4 mt-12 pt-6">
+                              {/* Remove excessive <br> and replace with padding/margin if needed */}
+                              <h3 className="font-medium text-gray-800 mb-2">SOAP analysis</h3>
+
+                              <textarea
+                                className="bg-gray-50 text-black p-4 sm:p-6 pt-8 rounded border text-sm font-mono leading-relaxed mt-6 w-full h-60 resize-y overflow-x-auto whitespace-pre-wrap"
+                                value={note}
+                                onChange={(e) => setNote(e.target.value)}
+                                placeholder="Enter SOAP note here..."
+                              />
                             </div>
                           </div>
 
                           {mediaBlobUrl && (
                             <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                              <h3 className="font-medium text-gray-800 mb-2">Assessment Audio</h3>
-                              <audio src={mediaBlobUrl} controls className="w-full" />
+                              <h3 className="font-medium text-gray-800 mb-2">Transcription</h3>
+                              <textarea
+                                className="bg-gray-50 text-black p-4 sm:p-6 pt-8 rounded border text-sm font-mono leading-relaxed mt-6 w-full h-60 resize-y overflow-x-auto whitespace-pre-wrap"
+                                value={text}
+                                onChange={(e) => setText(e.target.value)}
+                                placeholder="Enter transcription here..."
+                              />
                             </div>
                           )}
 

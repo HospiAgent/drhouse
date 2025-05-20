@@ -5,7 +5,7 @@ import { ProtectedRoute } from '@/components/auth/protected-route';
 import { getUserData } from '@/utils/auth';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import jwtDecode from 'jwt-decode';
+import {jwtDecode} from 'jwt-decode';
 import { Dialog } from '@headlessui/react'; 
 
 function ProfileDropdown({ user }) {

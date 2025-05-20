@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ProtectedRoute } from "@/components/auth/protected-route";
-
+import { useRouter } from "next/navigation";
 export default function ProductHighlightPage() {
+  
+  const router = useRouter()
   return (
     <ProtectedRoute>
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
@@ -63,11 +65,10 @@ export default function ProductHighlightPage() {
 
         {/* Continue Button */}
         <div className="text-center">
-          <Link href="/onboarding" legacyBehavior passHref>
-            <Button className="h-14 px-12 text-lg font-medium">
+            <Button className="h-14 px-12 text-lg font-medium" onClick={() => router.push('/dashboard')}>
               Continue to Dashboard
             </Button>
-          </Link>
+          
         </div>
       </div>
     </div>
