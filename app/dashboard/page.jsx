@@ -123,7 +123,7 @@ export default function DashboardPage() {
               <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
               {userData && (
                 <p className="text-gray-600 mt-1">
-                  Welcome, Dr. {userData.firstName} {userData.lastName}
+                  Welcome, Dr. {userData.name}
                 </p>
               )}
             </div>
