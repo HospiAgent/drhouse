@@ -1037,85 +1037,194 @@
     }, [currentChat, soapResponse]);
   
     // Patient History Modal Component
-    const PatientHistoryModal = () => (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div ref={historyModalRef} className="bg-white rounded-lg shadow-xl p-4 sm:p-6 w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-800">
-            Assement Summary for {currentChat?.name}</h2>
-            <button onClick={() => setShowHistoryModal(false)} className="text-gray-500 hover:text-gray-700">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-  
-          <div className="overflow-y-auto flex-1">
-            {isLoadingHistory ? (
-              <div className="flex justify-center items-center h-64">
-                <svg className="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    // Patient History Modal Component with improved formatting
+    const PatientHistoryModal = () => {
+      // Function to format SOAP data with proper structure
+      const formatSoapData = (rawData) => {
+        if (!rawData) return "No SOAP data available";
+        
+        // Remove markdown formatting if present
+        let processedData = rawData
+          .replace(/#{1,6}\s/g, '') // Remove heading markers
+          .replace(/\*\*/g, '')     // Remove bold markers
+          .replace(/\*/g, '')       // Remove italic markers
+          .replace(/`/g, '')        // Remove code markers
+          .replace(/>/g, '')        // Remove blockquote markers
+          .trim();
+        
+        return processedData;
+      };
+    
+      // Function to format SOAP data into sections
+      const formatSoapSections = (soapData) => {
+        if (!soapData) return { S: "", O: "", A: "", P: "" };
+        
+        // Try to identify sections by labels
+        const sections = {
+          S: "",
+          O: "",
+          A: "",
+          P: ""
+        };
+        
+        try {
+          // Look for S: O: A: P: patterns in the text
+          const sMatch = soapData.match(/\bS[\s]*:([^O]*)/i);
+          const oMatch = soapData.match(/\bO[\s]*:([^A]*)/i);
+          const aMatch = soapData.match(/\bA[\s]*:([^P]*)/i);
+          const pMatch = soapData.match(/\bP[\s]*:(.*)/is);
+          
+          if (sMatch) sections.S = sMatch[1].trim();
+          if (oMatch) sections.O = oMatch[1].trim();
+          if (aMatch) sections.A = aMatch[1].trim();
+          if (pMatch) sections.P = pMatch[1].trim();
+          
+          // If no sections were found, put everything in Assessment
+          if (!sections.S && !sections.O && !sections.A && !sections.P) {
+            sections.A = soapData;
+          }
+        } catch (error) {
+          console.error("Error parsing SOAP sections:", error);
+          sections.A = soapData;
+        }
+        
+        return sections;
+      };
+      
+      return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div ref={historyModalRef} className="bg-white rounded-lg shadow-xl p-4 sm:p-6 w-full max-w-5xl max-h-[85vh] overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center mb-4 border-b pb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-800">
+                Assessment History for {currentChat?.name}
+              </h2>
+              <button onClick={() => setShowHistoryModal(false)} className="text-gray-500 hover:text-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
-              </div>
-            ) : patientHistory.length === 0 ? (
-              <div className="py-8 text-center text-gray-500">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <p className="text-lg font-medium">No medical history available</p>
-                <p className="mt-2">This patient doesn't have any recorded SOAP notes yet.</p>
-              </div>
-            ) : (
-              patientHistory.map((historyItem, index) => {
-                // Parse the SOAP analysis JSON
-                let soapData = "";
-                try {
-                  console.log(JSON.stringify(historyItem))
-                  // const parsedSoap = JSON.parse(historyItem.soap_analysis);
-                  
-                  soapData = historyItem.soap_analysis;
-  
-                } catch (e) {
-                  console.error("Error parsing SOAP analysis:", e);
-                  soapData = "Error parsing SOAP data";
-                }
-  
-                return (
-                  <div key={historyItem.id} className={`border-b ${index !== 0 ? 'pt-6' : ''} pb-6`}>
-                    <div className="flex items-center mb-4">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mr-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
+              </button>
+            </div>
+    
+            <div className="overflow-y-auto flex-1">
+              {isLoadingHistory ? (
+                <div className="flex justify-center items-center h-64">
+                  <svg className="animate-spin h-10 w-10 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span className="ml-3 text-gray-600">Loading patient history...</span>
+                </div>
+              ) : patientHistory.length === 0 ? (
+                <div className="py-10 text-center text-gray-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-400 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <p className="text-xl font-medium mb-2">No medical history available</p>
+                  <p className="text-gray-500">This patient doesn't have any recorded SOAP notes yet.</p>
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {patientHistory.map((historyItem, index) => {
+                    // Format the SOAP data
+                    let soapData = "";
+                    try {
+                      soapData = historyItem.soap_analysis || "";
+                    } catch (e) {
+                      console.error("Error processing SOAP analysis:", e);
+                      soapData = "Error processing SOAP data";
+                    }
+                    
+                    // Format the SOAP data into sections
+                    const cleanedData = formatSoapData(soapData);
+                    const soapSections = formatSoapSections(cleanedData);
+    
+                    return (
+                      <div key={historyItem.id} className={`${index !== 0 ? 'pt-8' : 'pt-2'} pb-8`}>
+                        <div className="flex items-center mb-6">
+                          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <div className="font-semibold text-xl text-gray-800">SOAP Note</div>
+                            <div className="text-gray-500">{formatDate(historyItem.created_at)}</div>
+                          </div>
+                         
+                        </div>
+    
+                        <div className="bg-white border rounded-lg shadow-sm mb-6 overflow-hidden">
+                          <div className="border-b bg-gray-50 px-6 py-3">
+                            <h3 className="font-medium text-gray-800">SOAP Analysis</h3>
+                          </div>
+                          
+                          <div className="p-6">
+                            {/* Subjective Section */}
+                            {soapSections.S && (
+                              <div className="mb-6">
+                                <h4 className="font-bold text-blue-700 mb-2">Subjective</h4>
+                                <div className="pl-4 text-gray-800 leading-relaxed">{soapSections.S}</div>
+                              </div>
+                            )}
+                            
+                            {/* Objective Section */}
+                            {soapSections.O && (
+                              <div className="mb-6">
+                                <h4 className="font-bold text-green-700 mb-2">Objective</h4>
+                                <div className="pl-4 text-gray-800 leading-relaxed">{soapSections.O}</div>
+                              </div>
+                            )}
+                            
+                            {/* Assessment Section */}
+                            {soapSections.A && (
+                              <div className="mb-6">
+                                <h4 className="font-bold text-purple-700 mb-2">Assessment</h4>
+                                <div className="pl-4 text-gray-800 leading-relaxed">{soapSections.A}</div>
+                              </div>
+                            )}
+                            
+                            {/* Plan Section */}
+                            {soapSections.P && (
+                              <div>
+                                <h4 className="font-bold text-orange-700 mb-2">Plan</h4>
+                                <div className="pl-4 text-gray-800 leading-relaxed">{soapSections.P}</div>
+                              </div>
+                            )}
+                            
+                            {/* If no sections were identified, show all data */}
+                            {!soapSections.S && !soapSections.O && !soapSections.A && !soapSections.P && (
+                              <div className="text-gray-800 leading-relaxed">{cleanedData}</div>
+                            )}
+                          </div>
+                        </div>
+    
+                        <div className="bg-white border rounded-lg shadow-sm">
+                          <div className="border-b bg-gray-50 px-6 py-3">
+                            <h3 className="font-medium text-gray-800">Transcription</h3>
+                          </div>
+                          <div className="p-6 text-gray-700 leading-relaxed">
+                            {historyItem.transcription || "No transcription available"}
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-medium text-lg text-gray-800">SOAP Note</div>
-                        <div className="text-sm text-gray-500">{formatDate(historyItem.created_at)}</div>
-                      </div>
-                    </div>
-  
-                    <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                      <div className="font-medium text-gray-700 mb-2">SOAP Analysis</div>
-                      <div className="whitespace-pre-wrap text-sm font-mono text-gray-800 overflow-x-auto">
-                        {soapData}
-                      </div>
-                    </div>
-  
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <div className="font-medium text-gray-700 mb-2">Transcription</div>
-                      <div className="text-sm text-gray-800">
-                        {historyItem.transcription}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            
+            <div className="mt-6 flex justify-end border-t pt-4">
+              <button
+                onClick={() => setShowHistoryModal(false)}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    );
+      );
+    };
   
     const [text, setText] = useState(transcription || "");
   
