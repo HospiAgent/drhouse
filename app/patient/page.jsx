@@ -61,6 +61,8 @@
     const router = useRouter();
     // Add these new state variables near the other state declarations at the top
     const [activeMenu, setActiveMenu] = useState('patients'); // Default to patients database
+    const [showDoctorProfile, setShowDoctorProfile] = useState(false);
+
     const [isPatientsDatabaseExpanded, setIsPatientsDatabaseExpanded] = useState(true);
     const [showProfile, setShowProfile] = useState(false); // Hide profile by default on mobile
     const [showSidebar, setShowSidebar] = useState(false); // For mobile sidebar toggle
@@ -123,6 +125,8 @@
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [patientHistory, setPatientHistory] = useState([]);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+
   
     // Sample chat data
     const [chats, setChats] = useState([  ]);
@@ -382,6 +386,24 @@
     };
   
     const handleEndAssessment = () => {
+      if (recordingTime < 60) {
+        // If recording is less than 1 minute (60 seconds)
+        toast.error("Dr.House AI needs a brief conversation to generate notes. Please continue for at least 1 minute.", {
+          duration: 3000,
+          position: "top-center",
+          style: {
+            background: "#fee2e2",
+            color: "#b91c1c",
+            border: "1px solid #ef4444",
+            padding: "16px",
+            fontSize: "14px",
+          },
+          icon: "⚠️",
+        });
+        return; // Prevent ending the assessment
+      }
+      
+      // Only proceed if recording time is at least 1 minute
       stopRecordingMedia();
       setAssessmentState('summarizing');
     };
@@ -504,7 +526,20 @@
       </div>
     );
     // Appointment History Panel Component
+    // Appointment History Panel Component
     const AppointmentHistoryPanel = ({ setShowAppointmentHistory }) => {
+      // Filter patients who have at least one assessment (those with soapResponse)
+      const patientsWithAssessments = React.useMemo(() => {
+        return chats
+         // .filter(patient => patient.soapResponse  null)
+          .sort((a, b) => {
+            // Sort by last visit date descending
+            const dateA = new Date(a.last_visit || 0);
+            const dateB = new Date(b.last_visit || 0);
+            return dateB - dateA;
+          });
+      }, [chats]);
+    
       return (
         <div className="md:w-72 border-l bg-white overflow-y-auto flex flex-col h-full">
           {/* Mobile close button */}
@@ -525,12 +560,42 @@
             </button>
           </div>
     
-          <div className="p-4 flex-1 flex flex-col items-center justify-center">
-            <div className="text-5xl mb-4">📅</div>
-            <h3 className="text-lg font-medium text-gray-800 mb-2">No Appointments</h3>
-            <p className="text-gray-500 text-sm text-center">
-              There are no appointment records to display at this time.
-            </p>
+          <div className="overflow-y-auto flex-1">
+            {patientsWithAssessments.length === 0 ? (
+              <div className="p-4 flex-1 flex flex-col items-center justify-center">
+                <div className="text-5xl mb-4">📅</div>
+                <h3 className="text-lg font-medium text-gray-800 mb-2">No Appointments</h3>
+                <p className="text-gray-500 text-sm text-center">
+                  There are no assessment records to display at this time.
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y">
+                {patientsWithAssessments.map((patient) => (
+                  <div 
+                    key={patient.id} 
+                    className="py-3 px-4 hover:bg-gray-50 cursor-pointer"
+                    onClick={() => {
+                      setSelectedChat(patient.id);
+                      setShowAppointmentHistory(false);
+                    }}
+                  >
+                    <div className="flex items-center mb-1">
+                      <img src="https://avatar.iran.liara.run/public/42" alt="User" className="w-8 h-8 rounded-full mr-3" />
+                      <div className="font-medium text-gray-800">{patient.name}</div>
+                    </div>
+                    <div className="flex justify-between items-center pl-11">
+                      <div className="text-xs text-gray-500">
+                        {patient.message}
+                      </div>
+                      <div className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full">
+                        Completed
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       );
@@ -548,7 +613,7 @@
           </div>
     
           <div className="py-3 px-4 border-b flex items-center justify-between flex-shrink-0">
-            <h2 className="font-medium text-black">Doctor Profile</h2>
+            <h2 className="font-medium text-black">Doctor's Profile</h2>
             <button onClick={() => setShowProfile(false)} className="md:block hidden">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1092,19 +1157,22 @@
             <span className="text-xs mt-1">Patients</span>
           </button>
   
-          <button
+          <div 
+            className={`px-4 py-3 flex items-center cursor-pointer ${activeMenu === 'profile' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'}`}
             onClick={() => {
-              setShowProfile(!showProfile);
-              setShowSidebar(false);
-              setShowChatList(false);
+              setShowAppointmentHistory(false); 
+              setActiveMenu('profile');
+              setShowProfile(true);
+              setShowDoctorProfile(true); // Set this to true when clicking the Profile menu
             }}
-            className="flex flex-col items-center justify-center"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            <span className="text-xs mt-1">Profile</span>
-          </button>
+            <div className="w-5 h-5 mr-3 flex-shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <span className="font-medium">Profile</span>
+          </div>
   
           <button
             onClick={openAddPatientModal}
@@ -1128,7 +1196,7 @@
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-3">Welcome to Dr. House AI</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-3">Welcome to Dr.House AI</h2>
           <p className="text-gray-600 mb-8">Begin patient assessments and generate professional SOAP notes powered by AI.</p>
           <button 
             onClick={handleStartAssessingClick}
@@ -1167,7 +1235,7 @@
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
                       </button>
-                      <h1 className="text-lg font-medium text-gray-800 truncate">Dr. House AI</h1>
+                      <h1 className="text-lg font-medium text-gray-800 truncate">Dr.House AI</h1>
                     </div>
   
                     <div className="hidden md:block relative">
@@ -1290,6 +1358,8 @@
                                   className={`px-4 py-2 hover:bg-gray-100 cursor-pointer transition-colors ${selectedChat === chat.id ? 'bg-blue-50' : ''}`}
                                   onClick={() => {
                                     setSelectedChat(chat.id);
+                                    setShowDoctorProfile(false); // Reset doctor profile flag when a patient is selected
+
                                     if (window.innerWidth < 768) {
                                       setShowChatList(false);
                                     }
@@ -1371,7 +1441,12 @@
   
                         {/* Profile toggle button (visible on medium screens and up) */}
                         <button
-                          onClick={() => setShowProfile(!showProfile)}
+                            onClick={() => {
+                              setShowProfile(!showProfile)
+                              setShowDoctorProfile(false)
+                              setActiveMenu('patients');
+                            }
+                            }
                           className="hidden md:block text-gray-500 hover:text-gray-700"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1616,45 +1691,36 @@
                               </div>
                             </div>
                           
-                            {/* DR.House AI Summary Button */}
-                            <div className="mb-6">
-                              <button
-                                onClick={() => setShowTranscription(!showTranscription)}
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-md flex items-center justify-center transition duration-200"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                                DR.House AI Summary {showTranscription ? '(Hide)' : '(View)'}
-                              </button>
+                            {/* SOAP Analysis */}
+                            <div className="bg-gray-50 p-4 rounded-lg mb-6">
+                              <div className="flex justify-between items-center mb-2">
+                                <h3 className="font-medium text-gray-800">SOAP Analysis</h3>
+                                <button
+                                  onClick={() => setIsEditMode(!isEditMode)}
+                                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md text-sm hover:bg-blue-200 transition-colors"
+                                >
+                                  {isEditMode ? "Cancel" : "Edit"}
+                                </button>
+                              </div>
+                              <textarea
+                                className={`bg-gray-50 text-black p-4 sm:p-6 pt-8 rounded border text-sm font-mono leading-relaxed mt-6 w-full h-60 resize-y overflow-x-auto whitespace-pre-wrap ${!isEditMode && 'cursor-not-allowed'}`}
+                                value={note}
+                                onChange={(e) => setNote(e.target.value)}
+                                placeholder="Enter SOAP note here..."
+                                readOnly={!isEditMode}
+                              />
                             </div>
                           
-                            {/* Conditionally display both SOAP analysis and transcription */}
-                            {showTranscription && (
-                              <div>
-                                {/* SOAP Analysis */}
-                                <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                                  <h3 className="font-medium text-gray-800 mb-2">SOAP Analysis</h3>
-                                  <textarea
-                                    className="bg-gray-50 text-black p-4 sm:p-6 pt-8 rounded border text-sm font-mono leading-relaxed mt-6 w-full h-60 resize-y overflow-x-auto whitespace-pre-wrap"
-                                    value={note}
-                                    onChange={(e) => setNote(e.target.value)}
-                                    placeholder="Enter SOAP note here..."
-                                  />
-                                </div>
-                          
-                                {/* Transcription */}
-                                {mediaBlobUrl && (
-                                  <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                                    <h3 className="font-medium text-gray-800 mb-2">Transcription</h3>
-                                    <textarea
-                                      className="bg-gray-50 text-black p-4 sm:p-6 pt-8 rounded border text-sm font-mono leading-relaxed mt-6 w-full h-60 resize-y overflow-x-auto whitespace-pre-wrap"
-                                      value={text}
-                                      onChange={(e) => setText(e.target.value)}
-                                      placeholder="Enter transcription here..."
-                                    />
-                                  </div>
-                                )}
+                            {/* Transcription - always visible but not editable */}
+                            {mediaBlobUrl && (
+                              <div className="bg-gray-50 p-4 rounded-lg mb-6">
+                                <h3 className="font-medium text-gray-800 mb-2">Transcription</h3>
+                                <textarea
+                                  className="bg-gray-50 text-black p-4 sm:p-6 pt-8 rounded border text-sm font-mono leading-relaxed mt-6 w-full h-60 resize-y overflow-x-auto whitespace-pre-wrap cursor-not-allowed"
+                                  value={text}
+                                  readOnly={true}
+                                  placeholder="Transcription content..."
+                                />
                               </div>
                             )}
                           
@@ -1665,22 +1731,34 @@
                               >
                                 Continue Assessment
                               </button>
-                              <button
-                                onClick={() => {
-                                  toast.loading("Saving to patient record...", {
-                                    duration: 2000,
-                                    position: "top-right",
-                                    style: {
-                                      background: "#fff",
-                                      color: "#000",
-                                    },
-                                  });
-                                  addSoap(currentChat.id);
-                                }}
-                                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-                              >
-                                Save to Patient Record
-                              </button>
+                              {isEditMode ? (
+                                <button
+                                  onClick={() => {
+                                    setIsEditMode(false);
+                                    toast.success("SOAP note updated successfully!");
+                                  }}
+                                  className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+                                >
+                                  Save Changes
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => {
+                                    toast.loading("Saving to patient record...", {
+                                      duration: 2000,
+                                      position: "top-right",
+                                      style: {
+                                        background: "#fff",
+                                        color: "#000",
+                                      },
+                                    });
+                                    addSoap(currentChat.id);
+                                  }}
+                                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                                >
+                                  Save to Patient Record
+                                </button>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1689,108 +1767,119 @@
                   </div>
   
                   {/* Profile Sidebar - Hidden on mobile, shown when toggled or on desktop */}
+                  {/* Profile Sidebar - Hidden on mobile, shown when toggled or on desktop */}
                   {showProfile && (
                     <div className={`${showProfile ? 'fixed inset-0 z-30 bg-white md:relative md:z-auto md:bg-transparent' : 'hidden'} md:w-72 border-l bg-white overflow-y-auto`}>
-                      {selectedChat ? (
-                        // Show patient profile if a patient is selected
+                      {/* Logic for determining which profile to show */}
+                      {activeMenu === 'profile' ? (
+                        // Always show doctor profile when coming from the sidebar menu
+                        <DoctorProfilePanel 
+                          doctorName={doctorName}
+                          doctorSpeciality={doctorSpeciality}
+                          doctorAddress={doctorAddress}
+                          doctorId={doctorId}
+                          setShowProfile={setShowProfile}
+                        />
+                      ) : selectedChat ? (
+                        // Show patient profile when patient is selected and clicked from header
                         <>
-                          {/* Mobile close button */}
-                          <div className="md:hidden flex justify-end p-2">
-                            <button onClick={() => setShowProfile(false)} className="text-gray-500 p-2">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-                          </div>
-                  
-                          <div className="py-3 px-4 border-b flex items-center justify-between flex-shrink-0">
-                            <h2 className="font-medium text-black">Patient Profile</h2>
-                            <button onClick={() => setShowProfile(false)} className="md:block hidden">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-                          </div>
-                  
-                          <div className="p-4">
-                            <div className="flex flex-col items-center">
-                              <img src="https://avatar.iran.liara.run/public/42" alt="User" className="w-24 h-24 rounded-full" />
-                              <h3 className="text-black font-medium text-lg mt-4">{currentChat?.name}</h3>
-                          
-                  
-                              <div className="flex mt-4 w-full">
-                                <button
-                                  onClick={() => {
-                                    toast.success("Coming soon");
-                                  }}
-                                  className="flex-1 border border-gray-300 rounded-md py-2 text-xs text-gray-500 mr-2 flex items-center justify-center hover:bg-gray-50">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                  </svg>
-                                  Send on whatsapp
-                                </button>
-                                <button onClick={() => {
-                                  toast.success("Coming soon");
-                                }} className="flex-1 border border-gray-300 rounded-md py-2 text-xs text-gray-500 flex items-center justify-center hover:bg-gray-50">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
-                                  </svg>
-                                  Send on email
-                                </button>
-                              </div>
-                            </div>
-                  
-                            <div className="mt-6">
-                              <div className="text-xs text-gray-500 mb-2">Email address</div>
-                              <div className="flex items-center text-sm text-blue-500 mb-4 break-all">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                </svg>
-                                {currentChat?.email}
-                              </div>
-                  
-                              <div className="text-xs text-gray-500 mb-2">Phone</div>
-                              <div className="flex items-center text-sm mb-4 text-black">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                </svg>
-                                {currentChat?.phone}
-                              </div>
-                  
-                              <div className="text-xs text-gray-500 mb-2">Date of Birth</div>
-                              <div className="text-xs text-gray-500 mb-2">Age</div>
-                              <div className="flex items-center text-sm mb-4 text-black">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                <span>{calculateAge(currentChat?.dateOfBirth)}</span>
-                              </div>
-                  
-                              <div className="text-xs text-gray-500 mb-2">Gender</div>
-                              <div className="flex items-center text-sm mb-4 text-black">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                </svg>
-                                {currentChat?.gender || 'Not specified'}
-                              </div>
-                  
-                             
-                  
-                              {/* Show Past History Button */}
-                              <button
-                                onClick={openHistoryModal}
-                                className="w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md flex items-center justify-center transition duration-200"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                </svg>
-                                Show Past History
-                              </button>
-                            </div>
-                          </div>
-                        </>
+                                                 {/* Mobile close button */}
+                                                 <div className="md:hidden flex justify-end p-2">
+                                                   <button onClick={() => setShowProfile(false)} className="text-gray-500 p-2">
+                                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                     </svg>
+                                                   </button>
+                                                 </div>
+                                         
+                                                 <div className="py-3 px-4 border-b flex items-center justify-between flex-shrink-0">
+                                                   <h2 className="font-medium text-black">Patient Profile</h2>
+                                                   <button onClick={() => setShowProfile(false)} className="md:block hidden">
+                                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                     </svg>
+                                                   </button>
+                                                 </div>
+                                         
+                                                 <div className="p-4">
+                                                   <div className="flex flex-col items-center">
+                                                     <img src="https://avatar.iran.liara.run/public/42" alt="User" className="w-24 h-24 rounded-full" />
+                                                     <h3 className="text-black font-medium text-lg mt-4">{currentChat?.name}</h3>
+                                                 
+                                         
+                                                     <div className="flex mt-4 w-full">
+                                                       <button
+                                                         onClick={() => {
+                                                           toast.success("Coming soon");
+                                                         }}
+                                                         className="flex-1 border border-gray-300 rounded-md py-2 text-xs text-gray-500 mr-2 flex items-center justify-center hover:bg-gray-50">
+                                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                         </svg>
+                                                         Send on whatsapp
+                                                       </button>
+                                                       <button onClick={() => {
+                                                         toast.success("Coming soon");
+                                                       }} className="flex-1 border border-gray-300 rounded-md py-2 text-xs text-gray-500 flex items-center justify-center hover:bg-gray-50">
+                                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                                                         </svg>
+                                                         Send on email
+                                                       </button>
+                                                     </div>
+                                                   </div>
+                                         
+                                                   <div className="mt-6">
+                                                     <div className="text-xs text-gray-500 mb-2">Email address</div>
+                                                     <div className="flex items-center text-sm text-blue-500 mb-4 break-all">
+                                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                       </svg>
+                                                       {currentChat?.email}
+                                                     </div>
+                                         
+                                                     <div className="text-xs text-gray-500 mb-2">Phone</div>
+                                                     <div className="flex items-center text-sm mb-4 text-black">
+                                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                                       </svg>
+                                                       {currentChat?.phone}
+                                                     </div>
+                                         
+                                                     <div className="text-xs text-gray-500 mb-2">Date of Birth</div>
+                                                     <div className="text-xs text-gray-500 mb-2">Age</div>
+                                                     <div className="flex items-center text-sm mb-4 text-black">
+                                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                       </svg>
+                                                       <span>{calculateAge(currentChat?.dateOfBirth)}</span>
+                                                     </div>
+                                         
+                                                     <div className="text-xs text-gray-500 mb-2">Gender</div>
+                                                     <div className="flex items-center text-sm mb-4 text-black">
+                                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                       </svg>
+                                                       {currentChat?.gender || 'Not specified'}
+                                                     </div>
+                                         
+                                                    
+                                         
+                                                     {/* Show Past History Button */}
+                                                     <button
+                                                       onClick={openHistoryModal}
+                                                       className="w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md flex items-center justify-center transition duration-200"
+                                                     >
+                                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                                       </svg>
+                                                       Show Past History
+                                                     </button>
+                                                   </div>
+                                                 </div>
+                                               </>
                       ) : (
-                        // Show doctor profile if no patient is selected
+                        // Default to doctor profile if no patient selected
                         <DoctorProfilePanel 
                           doctorName={doctorName}
                           doctorSpeciality={doctorSpeciality}

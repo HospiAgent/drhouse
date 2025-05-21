@@ -93,7 +93,7 @@ export default function LoginPage() {
       
       toast({
         title: "Login successful",
-        description: "Welcome back to Dr. House",
+        description: "Welcome back to Dr.House",
       });
       
       // Start the transition animation
