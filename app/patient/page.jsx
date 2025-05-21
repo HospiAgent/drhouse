@@ -247,6 +247,7 @@
   
       // On mobile, close the chat list when a chat is selected
       if (window.innerWidth < 768) {
+        setShowSidebar(false)
         setShowChatList(false);
       }
   
@@ -1038,6 +1039,7 @@
   
     // Patient History Modal Component
     // Patient History Modal Component with improved formatting
+    // Patient History Modal Component with improved formatting
     const PatientHistoryModal = () => {
       // Function to format SOAP data with proper structure
       const formatSoapData = (rawData) => {
@@ -1098,7 +1100,13 @@
               <h2 className="text-lg sm:text-xl font-bold text-gray-800">
                 Assessment History for {currentChat?.name}
               </h2>
-              <button onClick={() => setShowHistoryModal(false)} className="text-gray-500 hover:text-gray-700">
+              <button 
+                onClick={() => {
+                  setShowHistoryModal(false);
+                  setShowAppointmentHistory(false);
+                }} 
+                className="text-gray-500 hover:text-gray-700"
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -1150,7 +1158,20 @@
                             <div className="font-semibold text-xl text-gray-800">SOAP Note</div>
                             <div className="text-gray-500">{formatDate(historyItem.created_at)}</div>
                           </div>
-                         
+                          
+                          {/* Print button (optional) */}
+                          <button 
+                            className="ml-auto bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded flex items-center text-sm"
+                            onClick={() => {
+                              // Logic for printing could be added here
+                              toast.success("Print functionality coming soon");
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                            Print
+                          </button>
                         </div>
     
                         <div className="bg-white border rounded-lg shadow-sm mb-6 overflow-hidden">
@@ -1215,7 +1236,10 @@
             
             <div className="mt-6 flex justify-end border-t pt-4">
               <button
-                onClick={() => setShowHistoryModal(false)}
+                onClick={() => {
+                  setShowHistoryModal(false);
+                  setShowAppointmentHistory(false);
+                }}
                 className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded"
               >
                 Close
@@ -1242,6 +1266,7 @@
             onClick={() => {
               setShowSidebar(!showSidebar);
               setShowProfile(false);
+              setShowSidebar(false)
               setShowChatList(false);
             }}
             className="flex flex-col items-center justify-center"
@@ -1368,10 +1393,11 @@
                 {/* Content Area */}
                 <div className="flex flex-1 overflow-hidden relative">
                   {/* Chat List - Hidden on mobile, shown when toggled or on desktop */}
-                  <div className={`${showChatList ? 'fixed inset-0 z-30 md:relative md:z-auto' : 'hidden md:block'} md:w-72 border-r bg-white flex flex-col overflow-hidden`}>
-                    {/* Mobile close button */}
+                  <div className={`${showSidebar || showChatList ? 'fixed inset-0 z-30 md:relative md:z-auto' : 'hidden md:block'} md:w-72 border-r bg-white flex flex-col overflow-hidden`}>
+
+                  {/* Mobile close button */}
                     <div className="md:hidden flex justify-end p-2">
-                      <button onClick={() => setShowChatList(false)} className="text-gray-500 p-2">
+                        <button onClick={() => { setShowChatList(false); setShowSidebar(false); }} className="text-gray-500 p-2">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -2011,7 +2037,7 @@
             
   
                 {/* Mobile Menu Bar */}
-                <MobileMenuBar />
+              
   
                 {/* Add Patient Modal */}
                 {showAddPatientModal && <AddPatientModal />}
