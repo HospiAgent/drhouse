@@ -76,7 +76,7 @@
       name: '',
       email: '',
       phone: '',
-      phoneCountryCode: '+1', // Add this new field with default value
+      phoneCountryCode: '+91', 
       condition: '',
       dateOfBirth: '',
       gender: 'Male'
@@ -387,9 +387,9 @@
     };
   
     const handleEndAssessment = () => {
-      if (recordingTime < 60) {
+      if (recordingTime < 30) {
         // If recording is less than 1 minute (60 seconds)
-        toast.error("Dr.House AI needs a brief conversation to generate notes. Please continue for at least 1 minute.", {
+        toast.error("Dr.House AI needs a brief conversation to generate notes. Please continue for at least 30 seconds.", {
           duration: 3000,
           position: "top-center",
           style: {
@@ -941,9 +941,10 @@
                 onChange={handleCountryCodeChange}
                 className="shadow appearance-none border rounded-l w-24 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline border-r-0"
               >
+                     <option value="+91">+91 IN</option>
                 <option value="+1">+1 US/CA</option>
                 <option value="+44">+44 UK</option>
-                <option value="+91">+91 IN</option>
+           
                 <option value="+61">+61 AU</option>
                 <option value="+86">+86 CN</option>
                 <option value="+49">+49 DE</option>
