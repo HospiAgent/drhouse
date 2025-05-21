@@ -1,4 +1,8 @@
+'use client';
+
+import { useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { HomeHero } from '@/components/home/hero';
 import { HomeFeatures } from '@/components/home/features';
 import { HomeCTA } from '@/components/home/cta';
@@ -6,6 +10,25 @@ import { MainNav } from '@/components/main-nav';
 import { FooterSection } from '@/components/footer-section';
 
 export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check for authentication token
+    const checkAuth = () => {
+      // Ensure this only runs in the browser
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('drhouse_auth_token');
+        
+        // If token exists, redirect to dashboard
+        if (token) {
+          router.push('/dashboard');
+        }
+      }
+    };
+
+    checkAuth();
+  }, [router]); // Include router in dependencies
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
