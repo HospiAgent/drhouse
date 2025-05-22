@@ -37,7 +37,7 @@ export function AuthLayout({ children, title, subtitle, imageUrl }) {
             <p className="text-lg">
               "Dr.House has completely transformed how I document patient encounters. I save at least an hour every day on paperwork, giving me more time with patients."
             </p>
-            <footer className="text-sm">Dr. Bhavesh Khan, Cardiologist</footer>
+            <footer className="text-sm">Dr. Bhavesh Singh, Cardiologist</footer>
           </blockquote>
         </div>
       </div>

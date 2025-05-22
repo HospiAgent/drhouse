@@ -1,77 +1,224 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 import { useRouter } from "next/navigation";
-export default function ProductHighlightPage() {
-  
-  const router = useRouter()
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Progress } from "@/components/ui/progress";
+
+export default function OnboardingPage() {
+  const router = useRouter();
+  const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState({
+    name: "",
+    age: "",
+    gender: "",
+    medicalHistory: "",
+    allergies: "",
+    preferences: {
+      notifications: true,
+      dataSharing: false,
+      language: "english"
+    }
+  });
+
+  const totalSteps = 4;
+  const progress = (step / totalSteps) * 100;
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handlePreferenceChange = (key, value) => {
+    setFormData(prev => ({
+      ...prev,
+      preferences: {
+        ...prev.preferences,
+        [key]: value
+      }
+    }));
+  };
+
+  const handleNext = () => {
+    if (step < totalSteps) {
+      setStep(prev => prev + 1);
+    } else {
+      // Save data and redirect
+      router.push('/dashboard');
+    }
+  };
+
+  const handleBack = () => {
+    if (step > 1) {
+      setStep(prev => prev - 1);
+    }
+  };
+
   return (
     <ProtectedRoute>
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      <div className="container mx-auto px-4 py-12 max-w-6xl">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Dr. House
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto">
-            Your intelligent medical assistant for accurate diagnostics and treatment plans
-          </p>
-        </div>
-
-        {/* 3 Key Points */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          {/* Point 1 */}
-          <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition-shadow">
-            <div className="text-blue-600 mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-semibold text-gray-800 mb-3">AI-Powered Diagnostics</h3>
-            <p className="text-gray-600 text-lg">
-              Our advanced algorithms analyze symptoms with 95% accuracy, reducing misdiagnosis and improving patient outcomes.
-            </p>
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
+        <div className="container mx-auto px-4 py-12 max-w-2xl">
+          {/* Progress Bar */}
+          <div className="mb-8">
+            <Progress value={progress} className="h-2" />
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Step {step} of {totalSteps}</p>
           </div>
 
-          {/* Point 2 */}
-          <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition-shadow">
-            <div className="text-blue-600 mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+          {/* Welcome - Step 1 */}
+          {step === 1 && (
+            <div className="space-y-6">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Welcome to Dr. House</h1>
+              <p className="text-gray-600 dark:text-gray-300">Let's get to know you better to provide personalized medical assistance.</p>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="dark:text-gray-200">Full Name</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder="Enter your full name"
+                    className="dark:bg-gray-800 dark:text-white dark:border-gray-700"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="age" className="dark:text-gray-200">Age</Label>
+                  <Input
+                    id="age"
+                    name="age"
+                    type="number"
+                    value={formData.age}
+                    onChange={handleInputChange}
+                    placeholder="Enter your age"
+                    className="dark:bg-gray-800 dark:text-white dark:border-gray-700"
+                  />
+                </div>
+              </div>
             </div>
-            <h3 className="text-2xl font-semibold text-gray-800 mb-3">24/7 Availability</h3>
-            <p className="text-gray-600 text-lg">
-              Instant access to medical expertise anytime, anywhere - no more waiting for appointments for preliminary assessments.
-            </p>
-          </div>
+          )}
 
-          {/* Point 3 */}
-          <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition-shadow">
-            <div className="text-blue-600 mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
+          {/* Medical History - Step 2 */}
+          {step === 2 && (
+            <div className="space-y-6">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Medical Information</h1>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="dark:text-gray-200">Gender</Label>
+                  <RadioGroup
+                    value={formData.gender}
+                    onValueChange={(value) => handleInputChange({ target: { name: 'gender', value } })}
+                    className="dark:text-gray-200"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="male" id="male" />
+                      <Label htmlFor="male" className="dark:text-gray-200">Male</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="female" id="female" />
+                      <Label htmlFor="female" className="dark:text-gray-200">Female</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="other" id="other" />
+                      <Label htmlFor="other" className="dark:text-gray-200">Other</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="medicalHistory" className="dark:text-gray-200">Medical History</Label>
+                  <textarea
+                    id="medicalHistory"
+                    name="medicalHistory"
+                    value={formData.medicalHistory}
+                    onChange={handleInputChange}
+                    className="w-full min-h-[100px] p-3 rounded-md border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    placeholder="List any significant medical conditions or surgeries"
+                  />
+                </div>
+              </div>
             </div>
-            <h3 className="text-2xl font-semibold text-gray-800 mb-3">Evidence-Based</h3>
-            <p className="text-gray-600 text-lg">
-              Recommendations backed by the latest medical research and continuously updated clinical guidelines.
-            </p>
-          </div>
-        </div>
+          )}
 
-        {/* Continue Button */}
-        <div className="text-center">
-            <Button className="h-14 px-12 text-lg font-medium" onClick={() => router.push('/dashboard')}>
-              Continue to Dashboard
+          {/* Allergies - Step 3 */}
+          {step === 3 && (
+            <div className="space-y-6">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Allergies & Medications</h1>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="allergies" className="dark:text-gray-200">Allergies</Label>
+                  <textarea
+                    id="allergies"
+                    name="allergies"
+                    value={formData.allergies}
+                    onChange={handleInputChange}
+                    className="w-full min-h-[100px] p-3 rounded-md border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    placeholder="List any allergies to medications or substances"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Preferences - Step 4 */}
+          {step === 4 && (
+            <div className="space-y-6">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Preferences</h1>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="dark:text-gray-200">Enable Notifications</Label>
+                  <input
+                    type="checkbox"
+                    checked={formData.preferences.notifications}
+                    onChange={(e) => handlePreferenceChange('notifications', e.target.checked)}
+                    className="h-4 w-4 dark:bg-gray-800 dark:border-gray-600"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label className="dark:text-gray-200">Allow Anonymous Data Sharing</Label>
+                  <input
+                    type="checkbox"
+                    checked={formData.preferences.dataSharing}
+                    onChange={(e) => handlePreferenceChange('dataSharing', e.target.checked)}
+                    className="h-4 w-4 dark:bg-gray-800 dark:border-gray-600"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="dark:text-gray-200">Preferred Language</Label>
+                  <select
+                    value={formData.preferences.language}
+                    onChange={(e) => handlePreferenceChange('language', e.target.value)}
+                    className="w-full p-2 rounded-md border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  >
+                    <option value="english">English</option>
+                    <option value="spanish">Spanish</option>
+                    <option value="french">French</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Navigation Buttons */}
+          <div className="flex justify-between mt-8">
+            <Button
+              variant="outline"
+              onClick={handleBack}
+              disabled={step === 1}
+            >
+              Back
             </Button>
-          
+            <Button onClick={handleNext}>
+              {step === totalSteps ? 'Complete' : 'Next'}
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
     </ProtectedRoute>
   );
 }
