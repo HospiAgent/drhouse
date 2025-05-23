@@ -55,7 +55,7 @@ export default function LoginPage() {
   function onSubmit(values) {
     setIsLoading(true);
 
-    fetch("https://content-panel.lvl.fit/drhouse/api/login", {
+    fetch("https://monkfish-app-hnnle.ondigitalocean.app/api/auth/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
