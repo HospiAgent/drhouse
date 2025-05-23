@@ -175,7 +175,7 @@ export default function SignupPage() {
           if (newOpacity <= 0) {
             clearInterval(fadeOutInterval);
             // Navigate when fully faded out
-            router.push("/onboarding");
+            router.push("/dashboard");
           }
           return newOpacity;
         });
