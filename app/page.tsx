@@ -39,7 +39,7 @@ export default function Home() {
               href="/login"
               className="text-sm font-medium text-primary hover:text-primary/80"
             >
-              Log in
+              Sign in
             </Link>
             <Link
               href="/signup"
