@@ -7,6 +7,7 @@ import { jwtDecode } from "jwt-decode";
 import { useSearchParams } from "next/navigation";
 import parse from "html-react-parser";
 
+
 import { useRouter } from "next/navigation";
 import { render } from "react-dom";
 
@@ -37,6 +38,7 @@ const calculateAge = (dateOfBirth) => {
 };
 const formatLastVisit = (dateString) => {
   if (!dateString) return "No visit record";
+  
 
   try {
     const date = new Date(dateString);
@@ -53,6 +55,7 @@ const formatLastVisit = (dateString) => {
     return "Date error";
   }
 };
+
 // Create a wrapper component that safely uses searchParams
 function SearchParamsWrapper({ children }) {
   const searchParams = useSearchParams();
@@ -63,16 +66,39 @@ export default function HealthMonitor() {
   const [showTranscription, setShowTranscription] = useState(false);
 
   const router = useRouter();
-  // Add these new state variables near the other state declarations at the top
-  const [activeMenu, setActiveMenu] = useState("patients"); // Default to patients database
+  const handleLogout = () => {
+    const confirmLogout = window.confirm('Are you sure you want to logout?');
+    
+    if (confirmLogout) {
+      localStorage.removeItem('drhouse_auth_token');
+      sessionStorage.clear();
+      
+  
+      
+      toast.success('Logged out successfully!', {
+        duration: 2000,
+        position: 'top-center',
+        style: {
+          background: '#f0f9ff',
+          color: '#0369a1',
+          border: '1px solid #0284c7',
+        },
+      });
+      
+      setTimeout(() => {
+        router.push('/'); 
+      }, 1000);
+    }
+  };
+  const [activeMenu, setActiveMenu] = useState("patients");
   const [showDoctorProfile, setShowDoctorProfile] = useState(false);
 
   const [isPatientsDatabaseExpanded, setIsPatientsDatabaseExpanded] =
     useState(true);
-  const [showProfile, setShowProfile] = useState(false); // Hide profile by default on mobile
-  const [showSidebar, setShowSidebar] = useState(false); // For mobile sidebar toggle
-  const [selectedChat, setSelectedChat] = useState(null); // No patient selected by default
-  const [assessmentState, setAssessmentState] = useState("not-started"); // not-started, recording, paused, summarizing, completed
+  const [showProfile, setShowProfile] = useState(false); 
+  const [showSidebar, setShowSidebar] = useState(false); 
+  const [selectedChat, setSelectedChat] = useState(null); 
+  const [assessmentState, setAssessmentState] = useState("not-started"); 
   const [recordingTime, setRecordingTime] = useState(0);
   const [showAppointmentHistory, setShowAppointmentHistory] = useState(false);
   const [recordingInterval, setRecordingInterval] = useState(null);
@@ -1717,20 +1743,52 @@ export default function HealthMonitor() {
                       Dr.House AI
                     </h1>
                   </div>
-
+                
                   <div className="hidden md:block relative"></div>
-
-                  <div className="flex items-center">
+                
+                  {/* Doctor Profile and Logout Button Container */}
+                  <div className="flex items-center space-x-3">
+                    {/* Doctor Profile Info */}
                     <div className="hidden md:flex items-center">
                       <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white mr-2">
-                        DC
+                        {doctorName
+                          ? doctorName
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")
+                              .toUpperCase()
+                              .substring(0, 2)
+                          : "DC"}
                       </div>
                       <div className="hidden sm:block">
                         <div className="text-sm text-black font-medium">
-                          {doctorName}
+                          {doctorName || 'Doctor'}
                         </div>
                       </div>
                     </div>
+                
+                    {/* Logout Button */}
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 border border-gray-200 hover:border-red-200"
+                      title="Logout"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 mr-1 sm:mr-2"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                        />
+                      </svg>
+                      <span className="hidden sm:inline">Logout</span>
+                    </button>
                   </div>
                 </div>
 
