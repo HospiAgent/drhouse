@@ -111,7 +111,7 @@ export default function SignupPage() {
       agreeToTerms: values.terms,
     };
 
-    fetch("https://content-panel.lvl.fit/drhouse/api/signup", {
+    fetch("https://monkfish-app-hnnle.ondigitalocean.app/api/auth/signup", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -175,7 +175,7 @@ export default function SignupPage() {
           if (newOpacity <= 0) {
             clearInterval(fadeOutInterval);
             // Navigate when fully faded out
-            router.push("/onboarding");
+            router.push("/dashboard");
           }
           return newOpacity;
         });
