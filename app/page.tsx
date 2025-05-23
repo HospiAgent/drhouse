@@ -1,27 +1,27 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { HomeHero } from '@/components/home/hero';
-import { HomeFeatures } from '@/components/home/features';
-import { HomeCTA } from '@/components/home/cta';
-import { MainNav } from '@/components/main-nav';
-import { FooterSection } from '@/components/footer-section';
+import { useEffect, useLayoutEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { HomeHero } from "@/components/home/hero";
+import { HomeFeatures } from "@/components/home/features";
+import { HomeCTA } from "@/components/home/cta";
+import { MainNav } from "@/components/main-nav";
+import { FooterSection } from "@/components/footer-section";
 
 export default function Home() {
   const router = useRouter();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     // Check for authentication token
     const checkAuth = () => {
       // Ensure this only runs in the browser
-      if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('drhouse_auth_token');
-        
+      if (typeof window !== "undefined") {
+        const token = localStorage.getItem("drhouse_auth_token");
+
         // If token exists, redirect to dashboard
         if (token) {
-          router.push('/dashboard');
+          router.push("/dashboard");
         }
       }
     };

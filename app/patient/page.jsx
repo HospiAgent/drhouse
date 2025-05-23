@@ -35,6 +35,7 @@ const calculateAge = (dateOfBirth) => {
     return "Age calculation error";
   }
 };
+
 const formatLastVisit = (dateString) => {
   if (!dateString) return "No visit record";
 
