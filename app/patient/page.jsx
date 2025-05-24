@@ -10,6 +10,7 @@ import parse from "html-react-parser";
 
 import { useRouter } from "next/navigation";
 import { render } from "react-dom";
+import { getUserData } from "@/utils/auth";
 
 const calculateAge = (dateOfBirth) => {
   if (!dateOfBirth) return "Unknown";
@@ -162,6 +163,7 @@ export default function HealthMonitor() {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
 
+
   // Sample chat data
   const [chats, setChats] = useState([]);
 
@@ -172,8 +174,12 @@ export default function HealthMonitor() {
 
   const getPatients = async () => {
     try {
+      const userData = getUserData();
+      
+
+      
       let all_patients = await axios.get(
-        "https://hospital-be-q56g.onrender.com/get/patients",
+        `https://hospital-be-q56g.onrender.com/get/patients?doctor_id=${userData.id}`,
       );
       var patients_data = all_patients.data;
       var patientAll = [];
