@@ -565,6 +565,7 @@ export default function HealthMonitor() {
   const emailInputRef = useRef(null);
   const phoneInputRef = useRef(null);
   const dobInputRef = useRef(null);
+  const soapRagRef = useRef(null);
   const conditionInputRef = useRef(null);
   const genderInputRef = useRef(null);
 
@@ -938,6 +939,8 @@ export default function HealthMonitor() {
           <div className="flex items-center border-t pt-4">
             <input
               type="text"
+              name="soaprag"
+              ref={soapRagRef}
               value={aiQuestion}
               onChange={(e) => setAiQuestion(e.target.value)}
               onKeyPress={(e) => {
@@ -1034,6 +1037,9 @@ export default function HealthMonitor() {
       switch (focusedField) {
         case "name":
           nameInputRef.current?.focus();
+          break;
+        case "soaprag":
+          soapRagRef.current?.focus();
           break;
         case "email":
           emailInputRef.current?.focus();

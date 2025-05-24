@@ -1,23 +1,14 @@
 {
-<<<<<<< HEAD
   "name": "dr-house",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-=======
-  "name": "nextjs",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
     "dev": "next dev",
->>>>>>> e447e4b4a3e946fd7d35e7e3d096893b839f83d3
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
-<<<<<<< HEAD
     "axios": "^1.9.0",
     "jwt-decode": "^4.0.0",
     "next": "15.3.2",
@@ -29,8 +20,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4"
-=======
+    "tailwindcss": "^4",
     "@headlessui/react": "^2.2.3",
     "@hookform/resolvers": "^3.9.0",
     "@next/swc-wasm-nodejs": "13.5.1",
@@ -97,6 +87,5 @@
     "typescript": "5.2.2",
     "vaul": "^0.9.9",
     "zod": "^3.23.8"
->>>>>>> e447e4b4a3e946fd7d35e7e3d096893b839f83d3
   }
 }
