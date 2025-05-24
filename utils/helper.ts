@@ -103,109 +103,6 @@ export async function callGeminiAPI(
   }
 }
 
-// export const analyzeDocumentsPrompt = (document: any) => {
-//   return `
-//   You are a medical data extractor. Your job is to read the provided medical document and extract the key patient information in a clear, human-readable format.
-
-//   Document to analyze: ${JSON.stringify(document)}
-
-//   Please extract and present the following information:
-//   1. Basic patient details (name, age, gender)
-//   2. Medical conditions
-//   3. Key measurements (blood pressure, glucose, etc.) with their values and units
-//   4. Current medications with dosages
-//   5. Lifestyle information
-//   6. Risk factors
-//   7. Doctor's assessment
-//   8. Upcoming appointments
-
-//   Format the information in simple, readable sections with appropriate headings. Highlight abnormal values (high/low) where relevant. Only include information that is clearly present in the document - do not make assumptions about missing data.
-
-//   Return a JSON object with the following structure:
-// {
-//   "patientInfo": {
-//     "name": "Full patient name",
-//     "age": "Age in years (numeric only)",
-//     "gender": "Patient gender",
-//     "condition": "Primary medical condition",
-//     "reportDate": "Date of the report in readable format",
-//     "deviceIntegration": {
-//       "Mobile": "Connected or Not Connected",
-//       "Tablet": "Connected or Not Connected",
-//       "Desktop": "Connected or Not Connected"
-//     }
-//   },
-//   "glucoseMonitoring": {
-//     "fastingGlucose": {
-//       "value": numeric value,
-//       "unit": "mg/dL",
-//       "status": "high/normal/low"
-//     },
-//     "hba1c": {
-//       "value": numeric value,
-//       "unit": "%",
-//       "status": "high/normal/low"
-//     }
-//   },
-//   "bloodPressureMonitoring": {
-//     "morningReading": {
-//       "systolic": {
-//         "value": numeric value,
-//         "status": "high/normal/low"
-//       },
-//       "diastolic": {
-//         "value": numeric value
-//       }
-//     },
-//     "weeklyAverage": {
-//       "systolic": numeric value,
-//       "diastolic": numeric value,
-//       "status": "high/normal/low"
-//     }
-//   },
-//   "medicationAdherence": {
-//     "medications": [
-//       {
-//         "name": "Medication name",
-//         "dosage": "Dosage info",
-//         "frequency": "Frequency info",
-//         "status": "good/below_target"
-//       }
-//     ],
-//     "nextRefill": "Next refill date"
-//   },
-//   "lifestyleMetrics": {
-//     "physicalActivity": {
-//       "dailySteps": numeric value,
-//       "status": "good/below_target"
-//     },
-//     "diet": {
-//       "adherenceToMealPlan": "Percentage or description"
-//     }
-//   },
-//   "riskAssessment": {
-//     "cardiovascularRisk": "moderate/low/high",
-//     "diabeticComplications": "low/moderate/high",
-//     "nextCheckupDue": "Next checkup date"
-//   },
-//   "overallImpression": "Detailed clinical assessment text"
-// }
-
-// Important guidelines:
-// 1. Use the EXACT field names shown above
-// 2. For missing data, use reasonable defaults based on available information
-// 3. Status values must be one of: "high", "low", "normal", "good", "below_target", "moderate"
-// 4. Ensure all numeric values are actual numbers without units (units are separate fields)
-// 5. DO NOT add any explanatory text outside the JSON object
-// 6. Only return valid JSON that can be parsed with JSON.parse()
-// 7. Format dates as readable strings (e.g., "May 15, 2025")
-// 8. If a field is not present in the given pdf make up the value but make sure you send all of the values given in the JSON in a string
-// 9. Return {the specified json}
-// 10. Do not add anything else do not add delimeter or json or \n in your reply just a single object
-
-//   `;
-// };
-
 export const analyzeDocumentsPrompt = (document: any) => {
   return `
   You are a medical data extractor. Your job is to read the provided medical document and extract the key patient information in a clear, human-readable format.
@@ -357,7 +254,9 @@ Important guidelines:
 };
 
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+
 export const MAX_FILES = 10;
+
 export const ACCEPTED_FILE_TYPES = {
   "application/pdf": [".pdf"],
   "text/plain": [".txt"],
@@ -469,4 +368,25 @@ export const cleanAnalysisData = (data: any) => {
         "Hepatitis B Surface Antigen (HbsAg): 0.09 S/C Units (Non-reactive: < 0.90 Reactive: => 1.00 Borderline: 0.90-1.00). VDRL: Non-reactive. Hepatitis C Virus (HCV) Antibody: 0.03 S/C Units (Non-reactive: < 0.90 Reactive: => 1.00 Borderline: 0.90-1.00). Human Immunodeficiency Virus (HIV) 1 & 2: 0.50 S/C Units (Non-reactive: < 0.90 Reactive: => 1.00)",
     });
   }
+};
+
+export const getInitials = (name: string) => {
+  return name
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase();
+};
+
+export const formatDate = (dateString: string | null) => {
+  if (!dateString) return "Not available";
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - date.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return date.toLocaleDateString();
 };
