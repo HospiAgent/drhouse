@@ -155,6 +155,7 @@ export default function HealthMonitor() {
   const [showPatientList, setShowPatientList] = useState(false); // For displaying patient list after clicking "Start assessing"
   const modalRef = useRef(null);
   const historyModalRef = useRef(null);
+  const aiChatModalRef = useRef(null); // Ref for AI Chat Modal
   const [soapResponse, setSoapResponse] = useState("");
   const [transcription, setTranscription] = useState("");
   const previousChatRef = useRef(selectedChat);
@@ -162,6 +163,11 @@ export default function HealthMonitor() {
   const [patientHistory, setPatientHistory] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+
+  // State for AI Chat Modal
+  const [showAiChatModal, setShowAiChatModal] = useState(false);
+  const [currentAiChatHistory, setCurrentAiChatHistory] = useState([]);
+  const [selectedHistoryForAiChat, setSelectedHistoryForAiChat] = useState(null);
 
 
   // Sample chat data
@@ -577,16 +583,22 @@ export default function HealthMonitor() {
       ) {
         setShowHistoryModal(false);
       }
+      if (
+        aiChatModalRef.current &&
+        !aiChatModalRef.current.contains(event.target)
+      ) {
+        setShowAiChatModal(false);
+      }
     }
 
-    if (showAddPatientModal || showHistoryModal) {
+    if (showAddPatientModal || showHistoryModal || showAiChatModal) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showAddPatientModal, showHistoryModal]);
+  }, [showAddPatientModal, showHistoryModal, showAiChatModal]);
 
   // Filter chats based on search query
   const filteredChats = chats.filter(
@@ -866,6 +878,87 @@ export default function HealthMonitor() {
                 <span>{doctorAddress || "No address provided"}</span>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // AI Chat Modal Component
+  const AiChatModal = () => {
+    if (!selectedHistoryForAiChat) return null; // Don't render if no history item is selected
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div
+          ref={aiChatModalRef}
+          className="bg-white rounded-lg shadow-xl p-4 sm:p-6 w-full max-w-2xl max-h-[80vh] flex flex-col"
+        >
+          {/* Header */}
+          <div className="flex justify-between items-center mb-4 border-b pb-3">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-800">
+              Chat with AI about {currentChat?.name || "Patient"}'s History
+            </h2>
+            <button
+              onClick={() => setShowAiChatModal(false)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Chat Display Area */}
+          <div className="flex-1 overflow-y-auto mb-4 p-2 space-y-3 bg-gray-50 rounded">
+            {currentAiChatHistory.length === 0 && (
+              <div className="text-center text-gray-500 py-10">
+                Ask a question about the selected SOAP note to start the chat.
+              </div>
+            )}
+            {currentAiChatHistory.map((message, index) => (
+              <div
+                key={index}
+                className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-xs lg:max-w-md px-3 py-2 rounded-lg shadow ${
+                    message.type === 'user'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-200 text-gray-800'
+                  }`}
+                >
+                  {message.text}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Input Area */}
+          <div className="flex items-center border-t pt-4">
+            <input
+              type="text"
+              value={aiQuestion}
+              onChange={(e) => setAiQuestion(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && aiQuestion.trim()) {
+                  handleAiChatSubmit(aiQuestion, selectedHistoryForAiChat?.soap_analysis);
+                }
+              }}
+              placeholder="Ask a question about the SOAP note..."
+              className="flex-1 border rounded-lg py-2 px-3 mr-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              onClick={() => {
+                if (aiQuestion.trim()) {
+                  handleAiChatSubmit(aiQuestion, selectedHistoryForAiChat?.soap_analysis);
+                }
+              }}
+              disabled={!aiQuestion.trim()}
+              className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg disabled:opacity-50"
+            >
+              Send
+            </button>
           </div>
         </div>
       </div>
@@ -1470,7 +1563,30 @@ export default function HealthMonitor() {
                         </div>
 
                         {/* Print button (optional) */}
-                       
+                        <button
+                          onClick={() => {
+                            setSelectedHistoryForAiChat(historyItem);
+                            setCurrentAiChatHistory([]); // Clear previous chat
+                            setShowAiChatModal(true);
+                          }}
+                          className="ml-4 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md text-sm flex items-center"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 mr-2"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.79 4 4s-1.79 4-4 4c-1.742 0-3.223-.835-3.772-2M12 12H4m4 4H4m4-4H4m12 0h.01M12 6V5M12 19v-1"
+                            />
+                          </svg>
+                          Ask AI
+                        </button>
                       </div>
 
                       <div className="bg-white border rounded-lg shadow-sm mb-6 overflow-hidden">
@@ -1533,6 +1649,29 @@ export default function HealthMonitor() {
   }, [transcription]);
 
   const [cleanSoap, setCleanSoap] = useState("");
+  const [aiQuestion, setAiQuestion] = useState(""); // State for AI chat input
+
+  const handleAiChatSubmit = (question, soapHistory) => {
+    console.log("Question:", question);
+    console.log("SOAP History:", soapHistory);
+
+    // Add user's question to chat history
+    setCurrentAiChatHistory(prevHistory => [
+      ...prevHistory,
+      { type: 'user', text: question }
+    ]);
+
+    // Simulate AI response
+    // In a real scenario, this would involve an API call
+    setTimeout(() => {
+      setCurrentAiChatHistory(prevHistory => [
+        ...prevHistory,
+        { type: 'ai', text: 'This is a mocked AI answer based on the provided SOAP note.' }
+      ]);
+    }, 1000);
+
+    setAiQuestion(""); // Clear input field
+  };
 
   const cleanHTML = (data) => {
     // Only remove html, head, and body tags (opening and closing) while preserving other content
@@ -2885,6 +3024,9 @@ export default function HealthMonitor() {
 
               {/* Patient History Modal */}
               {showHistoryModal && <PatientHistoryModal />}
+
+              {/* AI Chat Modal */}
+              {showAiChatModal && <AiChatModal />}
 
               <Toaster />
             </div>
