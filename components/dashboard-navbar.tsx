@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { UserRound, Users, Stethoscope, Calendar, X, Home } from "lucide-react";
+import { UserRound, Users, Stethoscope, Calendar, X, Home, Paperclip } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSidebar } from "@/context/sidebar-context";
@@ -22,6 +22,11 @@ const navBar = [
   },
   { url: "/dashboard/patients", name: "Patients Database", icon: Users },
   { url: "/dashboard/profile", name: "Profile", icon: UserRound },
+  {
+    url: "/dashboard/doc-analysis",
+    name: "Document Analysis",
+    icon: UserRound,
+  },
 ];
 
 const DashboardNavbar = () => {
@@ -44,6 +49,7 @@ const DashboardNavbar = () => {
           isOpen ? "w-64" : "w-20"
         )}
       >
+
         <div className="flex-1 flex flex-col">
         {/* Logo Section */}
         <div className="py-4">
@@ -131,6 +137,8 @@ const DashboardNavbar = () => {
           )}
         />
       </button>
+
+   
     </>
   );
 };
